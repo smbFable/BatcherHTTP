@@ -35,7 +35,7 @@ func main() {
 			panic(err)
 		}
 	}()
-	
+
 	<-ctx.Done()
 	fmt.Println("Контекст отменен, сервер остановлен")
 }
