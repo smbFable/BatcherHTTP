@@ -1,0 +1,11 @@
+Scheme:
+
+docker container with server
+      |
+    Server <- HTTP requests from client
+      |
+processing of req
+      |
+adding into batch
+      |
+adding batch in DB

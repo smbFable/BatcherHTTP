@@ -1,20 +1,24 @@
 package main
 
 import (
+	"BatcherHTTP/Database"
+	"BatcherHTTP/Server"
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/jackc/pgx/v5"
 )
 
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	pgxS := "postgres://postgres:A1234@localhost:5432/batcher"
+	pgxS, err := Database.ParserDB()
+	if err != nil {
+		panic(err)
+	}
 
-	conn, err := pgx.Connect(ctx, pgxS)
+	conn, err := pgx.Connect(ctx, pgxS.Path)
 	if err != nil {
 		panic(err)
 	}
@@ -23,6 +27,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 	fmt.Println("Подключение успешно")
+
+	go func() {
+		_, err := Server.StartServer()
+		if err != nil {
+			panic(err)
+		}
+	}()
+	
+	<-ctx.Done()
+	fmt.Println("Контекст отменен, сервер остановлен")
 }
