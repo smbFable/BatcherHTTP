@@ -18,7 +18,7 @@ func ParserDB() (Configs.DB, error) {
 
 	err = json.Unmarshal(dataByte, data)
 	if err != nil {
-		fmt.Println("Ошибка чтения байтов")
+		fmt.Println("Ошибка чтения json")
 		return Configs.DB{}, err
 	}
 	return *data, nil

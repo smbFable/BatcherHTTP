@@ -9,3 +9,5 @@ processing of req
 adding into batch
       |
 adding batch in DB
+
+PostReq -> Task -> TaskHandler -> Batch -> DB
