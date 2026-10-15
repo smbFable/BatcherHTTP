@@ -15,6 +15,7 @@ func TaskHandler(ch chan<- *Configs.Task) http.HandlerFunc {
 
 		if r.Method != http.MethodPost {
 			_, _ = fmt.Fprint(w, "Неверный метод запроса ", http.StatusBadRequest)
+			return
 		}
 
 		defer func(Body io.ReadCloser) {
