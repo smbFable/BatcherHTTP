@@ -26,17 +26,26 @@ func InitDB(conn *pgx.Conn, ctx context.Context) error {
 }
 
 func InsertInto(ctx context.Context, conn *pgx.Conn, rTasks []Configs.Task) error {
-	sqlRec := `INSERT INTO task_manager (info, received_at, handled) VALUES ($1, $2, $3);`
-	for _, rTask := range rTasks {
-		info := rTask.Info
-		receivedAt := rTask.ReceivedAt
-		handled := rTask.Handle
+	//sqlRec := `INSERT INTO task_manager (info, received_at, handled) VALUES ($1, $2, $3);`
 
-		_, err := conn.Exec(ctx, sqlRec, info, receivedAt, handled)
-		if err != nil {
-			fmt.Println("Не удалось вставить строки", err)
-			return err
-		}
+	amount, err := conn.CopyFrom(
+		ctx,
+		pgx.Identifier{"task_manager"},
+		[]string{"info", "received_at", "handled"},
+		pgx.CopyFromSlice(len(rTasks), func(i int) ([]any, error) {
+			return []any{
+				rTasks[i].Info,
+				rTasks[i].ReceivedAt,
+				rTasks[i].Handle,
+			}, nil
+		}),
+	)
+
+	if err != nil {
+		fmt.Println("Не удалось вставить батч:", err)
+		return err
 	}
+
+	fmt.Printf("Успешно сброшено в БД: %d задач", amount)
 	return nil
 }

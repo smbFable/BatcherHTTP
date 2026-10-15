@@ -33,6 +33,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer conn.Close(ctx)
 
 	err = conn.Ping(ctx)
 	if err != nil {

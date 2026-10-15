@@ -44,7 +44,7 @@ func BatchTracker(ticker *time.Ticker, conn *pgx.Conn, size int, timeout time.Du
 			if len(batch.inbox) >= size {
 				err := Database.InsertInto(ctx, conn, batch.inbox)
 				if err != nil {
-					fmt.Println("Батч не был отправлен")
+					fmt.Println("Батч не был отправлен", err)
 					break
 				}
 				fmt.Println("Батч успешно отправлен, CAPACITY LIMIT")
@@ -58,7 +58,7 @@ func BatchTracker(ticker *time.Ticker, conn *pgx.Conn, size int, timeout time.Du
 			err := Database.InsertInto(ctx, conn, batch.inbox)
 			batch = NewBatch(conn, size, timeout)
 			if err != nil {
-				fmt.Println("Батч не был отправлен")
+				fmt.Println("Батч не был отправлен", err)
 				break
 			}
 			fmt.Println("Батч успешно отправлен, TIMEOUT")
