@@ -18,10 +18,9 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	const batchSize = 50
-	const batchTimeout = 3 * time.Second
+	const batchSize = 5
+	const batchTimeout = 30 * time.Second
 	chanTasks := make(chan *Configs.Task, 100)
-	start := time.Now()
 
 	ticker := time.NewTicker(batchTimeout)
 
@@ -53,10 +52,10 @@ func main() {
 		}
 	}()
 
-	http.HandleFunc("/tasks", Handlers.TaskHandler(chanTasks, start))
+	http.HandleFunc("/tasks", Handlers.TaskHandler(chanTasks))
 
 	go func() {
-		WorkManager.BatchTracker(ticker, conn, batchSize, batchTimeout, chanTasks, start, ctx)
+		WorkManager.BatchTracker(ticker, conn, batchSize, batchTimeout, chanTasks, ctx)
 	}()
 
 	<-ctx.Done()

@@ -14,7 +14,6 @@ type Server struct {
 
 type Task struct {
 	Info       string `json:"info"`
-	ReceivedAt time.Duration
-	HandledAt  time.Time
+	ReceivedAt time.Time
 	Handle     bool
 }

@@ -9,8 +9,10 @@ import (
 	"time"
 )
 
-func TaskHandler(ch chan<- *Configs.Task, start time.Time) http.HandlerFunc {
+func TaskHandler(ch chan<- *Configs.Task) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+
 		if r.Method != http.MethodPost {
 			_, _ = fmt.Fprint(w, "Неверный метод запроса ", http.StatusBadRequest)
 		}
@@ -31,7 +33,7 @@ func TaskHandler(ch chan<- *Configs.Task, start time.Time) http.HandlerFunc {
 		}
 
 		err = json.Unmarshal(byteData, task)
-		task.ReceivedAt = time.Since(start)
+		task.ReceivedAt = start
 
 		if err != nil {
 			_, err = fmt.Fprint(w, "Ошибка чтения json ", http.StatusNoContent)

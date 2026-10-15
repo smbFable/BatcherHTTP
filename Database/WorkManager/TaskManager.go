@@ -20,7 +20,7 @@ type Batcher struct {
 
 func NewBatch(conn *pgx.Conn, size int, timeout time.Duration) *Batcher {
 	return &Batcher{
-		inbox:   make([]Configs.Task, size*4),
+		inbox:   make([]Configs.Task, 0, size*4),
 		size:    size,
 		timeout: timeout,
 		sink:    conn,
@@ -28,30 +28,40 @@ func NewBatch(conn *pgx.Conn, size int, timeout time.Duration) *Batcher {
 	}
 }
 
-func TaskReadier(since time.Time, newBatch *Batcher, rt Configs.Task) {
-	time.Sleep(100 * time.Millisecond)
-
+func TaskReadier(newBatch *Batcher, rt Configs.Task) {
 	rt.Handle = true
-	rt.HandledAt = since
-
 	newBatch.inbox = append(newBatch.inbox, rt)
+	fmt.Println(newBatch.inbox)
 }
 
-func BatchTracker(ticker *time.Ticker, conn *pgx.Conn, size int, timeout time.Duration, ch <-chan *Configs.Task, since time.Time, ctx context.Context) {
+func BatchTracker(ticker *time.Ticker, conn *pgx.Conn, size int, timeout time.Duration, ch <-chan *Configs.Task, ctx context.Context) {
 	batch := NewBatch(conn, size, timeout)
 
 	for {
 		select {
 		case readyTask := <-ch:
-			TaskReadier(since, batch, *readyTask)
+			TaskReadier(batch, *readyTask)
+			if len(batch.inbox) >= size {
+				err := Database.InsertInto(ctx, conn, batch.inbox)
+				if err != nil {
+					fmt.Println("Батч не был отправлен")
+					break
+				}
+				fmt.Println("Батч успешно отправлен, CAPACITY LIMIT")
+				batch = NewBatch(conn, size, timeout)
+			}
 		case <-ticker.C:
+			if len(batch.inbox) == 0 {
+				fmt.Println("Очередь пустая")
+				break
+			}
 			err := Database.InsertInto(ctx, conn, batch.inbox)
 			batch = NewBatch(conn, size, timeout)
 			if err != nil {
 				fmt.Println("Батч не был отправлен")
-				return
+				break
 			}
-			fmt.Println("Батч успешно отправлен")
+			fmt.Println("Батч успешно отправлен, TIMEOUT")
 		}
 	}
 }

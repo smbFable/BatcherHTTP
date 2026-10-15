@@ -14,7 +14,6 @@ func InitDB(conn *pgx.Conn, ctx context.Context) error {
 		id SERIAL PRIMARY KEY,
 		info VARCHAR(256),
 		received_at TIMESTAMP NOT NULL,
-		handled_at TIMESTAMP NOT NULL,
 		handled BOOLEAN NOT NULL
 		);
 `
@@ -27,19 +26,15 @@ func InitDB(conn *pgx.Conn, ctx context.Context) error {
 }
 
 func InsertInto(ctx context.Context, conn *pgx.Conn, rTasks []Configs.Task) error {
-	sqlRec := `
-		INSERT INTO task_manager (info, received_at, handled_at, handled)
-		VALUES ($1, $2, $3, $4);
-`
+	sqlRec := `INSERT INTO task_manager (info, received_at, handled) VALUES ($1, $2, $3);`
 	for _, rTask := range rTasks {
 		info := rTask.Info
-		createdAt := rTask.ReceivedAt
-		handledAt := rTask.HandledAt
+		receivedAt := rTask.ReceivedAt
 		handled := rTask.Handle
 
-		_, err := conn.Exec(ctx, sqlRec, info, createdAt, handledAt, handled)
+		_, err := conn.Exec(ctx, sqlRec, info, receivedAt, handled)
 		if err != nil {
-			fmt.Println("Не удалось вставить строки")
+			fmt.Println("Не удалось вставить строки", err)
 			return err
 		}
 	}
